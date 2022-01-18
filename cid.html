@@ -1,0 +1,143 @@
+
+
+<title>
+CID Spoofer - Leo Takacs
+</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.0/js/bootstrap.min.js"></script>
+
+<style>
+#cid_cont *{
+font-size: 35px;
+}
+input {
+    text-align: center;
+}
+</style>
+
+<center>
+
+</br>
+<div id="cid_cont" >
+<input type="text" id="cid_ent" length="20">
+</br><button class="btn btn-default" onclick="if(!this.disabled){setCID(document.getElementById('cid_ent').value)}">Set Caller ID</button>
+</br><button class="btn btn-default" onclick="if(!this.disabled){randCID();}">Random Caller ID</button>
+</br>
+</div>
+
+
+<aiframe width="500" height="220" frameborder="0" seamless="seamless" scrolling="no" ></iframe>
+<aiframe width1="0" height1="0" width="50%" height="500px" src="http://10.0.0.98/admin/config.php?display=trunks&tech=sip&extdisplay=OUT_1" frameborder="0"></iframe>
+
+
+<script>
+allowUpdates = true;
+areaCodes = [218, 917, 302, 406, 501, 334, 205, 251, 210, 430, 512, 802, 561, 954, 907, 860, 316, 240, 413, 978, 872, 779, 773, 712, 260, 620, 304, 681];
+
+editUrl = "http://10.0.0.98/admin/config.php?display=trunks&tech=sip&extdisplay=OUT_1";
+
+
+window.onload = function() {
+
+        iframe = document.getElementsByTagName("iframe")[1];
+        setTimeout(function() {
+            if (iframe.contentWindow.document.getElementById("outcid")) {
+                setStatusNumber(parseNumber(iframe.contentWindow.document.getElementById("outcid").value));
+                //setAreaCodeInfo();
+            }
+        }, 1000);
+}
+
+setAreaCodeInfo = function() {
+    a = "https://www.allareacodes.com/" + getCurAreaCode();
+    document.getElementsByTagName("iframe")[0].src = a;
+}
+
+setStatus = function(stat) {
+    document.getElementById("curID").innerHTML = stat;
+}
+setStatusNumber = function(stat1) {
+    document.getElementById("cid_ent").value = stat1;
+}
+
+parseNumber = function(number) {
+    number = number.toString();
+    number = number.replace(/\(/g, "");
+    number = number.replace(/\)/g, "");
+    number = number.replace(/ /g, "");
+    number = number.replace(/-/g, "");
+    number = [number.slice(0, 3), "-", number.slice(3)].join('');
+    number = [number.slice(0, 7), "-", number.slice(7)].join('');
+    number = [number.slice(0, 0), "(", number.slice(0)].join('');
+    number = [number.slice(0, 4), ")", number.slice(4)].join('');
+    return number;
+}
+
+getCurAreaCode = function(number) {
+    number = document.getElementById("cid_ent").value;
+    number = number.toString();
+    number = number.replace(/\(/g, "");
+    number = number.replace(/\)/g, "");
+    number = number.replace(/ /g, "");
+    number = number.replace(/-/g, "");
+    return number.substring(0, 3);
+}
+
+disableAllUI = function() {
+    for (i = 0; i < document.getElementById('cid_cont').children.length; i++) {
+        document.getElementById('cid_cont').children[i].disabled = true;
+    }
+}
+
+enableAllUI = function() {
+    for (i = 0; i < document.getElementById('cid_cont').children.length; i++) {
+        document.getElementById('cid_cont').children[i].disabled = false;
+    }
+}
+
+setCID = function(num) {
+    disableAllUI();
+    cid = num;
+    document.getElementById('cid_ent').value = '';
+    allowUpdates = false;
+    setStatusNumber("Setting number.....");
+    iframe.contentWindow.document.getElementById("outcid").value = cid;
+    setStatusNumber("Submitting.....");
+    iframe.contentWindow.document.getElementById("submit").click();
+    y = setInterval(function() {
+        if (iframe.contentWindow.window.location.href == "http://10.0.0.98/admin/config.php?display=trunks") {
+            clearInterval(y);
+            iframe.contentWindow.window.onload = function() {
+                setStatusNumber("Reloading.....");
+                iframe.contentWindow.document.getElementById("button_reload").click();
+            }
+            setTimeout(function() {
+                g = setInterval(function() {
+                    if (!iframe.contentWindow.document.getElementsByClassName("ui-dialog-title")[0]) {
+                        iframe.contentWindow.window.location.href = "http://10.0.0.98/admin/config.php?display=trunks&tech=sip&extdisplay=OUT_1";
+                        clearInterval(g);
+                        setStatusNumber(parseNumber(cid));
+                        enableAllUI();
+                        setAreaCodeInfo(getCurAreaCode());
+                    }
+                }, 50);
+            }, 1000);
+        }
+    }, 50);
+}
+
+randCID = function() {
+    areaCode = areaCodes[getRndInteger(0, areaCodes.length)];
+    final = areaCode + "-" + getRndInteger(101, 999) + "-" + getRndInteger(1001, 9999);
+    setCID(final);
+}
+
+
+getRndInteger = function(min, max) {
+    return Math.floor(Math.random() * (max - min)) + min;
+}
+
+
